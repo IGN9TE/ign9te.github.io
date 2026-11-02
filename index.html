@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaibhav Shah (IGN9TE) | Interactive Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: rgba(18, 23, 33, 0.72);
+      --border: rgba(255, 255, 255, 0.09);
+      --primary: #58a6ff;
+      --primary-glow: rgba(88, 166, 255, 0.35);
+      --secondary: #bc8cff;
+      --text: #f0f6fc;
+      --muted: #8b949e;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; min-height: 100vh; }
+
+    /* Custom Cursor Follower */
+    .cursor-dot, .cursor-ring { position: fixed; top: 0; left: 0; transform: translate(-50%, -50%); pointer-events: none; z-index: 9999; border-radius: 50%; }
+    .cursor-dot { width: 8px; height: 8px; background: var(--primary); box-shadow: 0 0 12px var(--primary); }
+    .cursor-ring { width: 36px; height: 36px; border: 1.5px solid var(--primary); transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.3s; }
+
+    /* Interactive Canvas Background */
+    #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .ambient-light { position: fixed; width: 650px; height: 650px; border-radius: 50%; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); top: 15%; left: 50%; transform: translate(-50%, -50%); filter: blur(90px); z-index: 0; pointer-events: none; transition: background 0.5s ease; }
+    .wrapper { max-width: 1120px; margin: 0 auto; padding: 2rem 1.5rem 5rem; position: relative; z-index: 1; }
+
+    /* Top Navigation & RGB Switcher */
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; backdrop-filter: blur(16px); margin-bottom: 3.5rem; flex-wrap: wrap; gap: 1rem; }
+    .brand { display: flex; align-items: center; gap: 0.65rem; font-weight: 800; font-size: 1.3rem; letter-spacing: 1px; }
+    .brand i { color: var(--primary); filter: drop-shadow(0 0 8px var(--primary)); transition: color 0.3s; }
+    .nav-controls { display: flex; align-items: center; gap: 1.25rem; }
+
+    /* RGB Theme Orbs */
+    .rgb-picker { display: flex; align-items: center; gap: 0.5rem; background: rgba(0, 0, 0, 0.35); padding: 0.4rem 0.75rem; border-radius: 99px; border: 1px solid var(--border); }
+    .rgb-label { font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; color: var(--muted); margin-right: 0.25rem; }
+    .rgb-btn { width: 18px; height: 18px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.2s; }
+    .rgb-btn:hover, .rgb-btn.active { transform: scale(1.25); border-color: #fff; }
+
+    /* Music Vibe Equalizer Button */
+    .vibe-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); color: var(--text); padding: 0.45rem 0.9rem; border-radius: 99px; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: all 0.25s; }
+    .vibe-btn:hover { border-color: var(--primary); }
+    .eq-bars { display: flex; align-items: flex-end; gap: 2px; height: 12px; }
+    .eq-bar { width: 3px; background: var(--primary); height: 3px; border-radius: 2px; transition: height 0.2s; }
+    .vibe-btn.playing .eq-bar:nth-child(1) { animation: eq 0.6s infinite ease-in-out; }
+    .vibe-btn.playing .eq-bar:nth-child(2) { animation: eq 0.6s infinite ease-in-out 0.2s; }
+    .vibe-btn.playing .eq-bar:nth-child(3) { animation: eq 0.6s infinite ease-in-out 0.4s; }
+    @keyframes eq { 0%, 100% { height: 3px; } 50% { height: 12px; } }
+
+    /* Hero Section */
+    .hero { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 2rem; align-items: center; margin-bottom: 4rem; }
+    @media (max-width: 850px) { .hero { grid-template-columns: 1fr; } }
+    .status-pill { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.9rem; border-radius: 99px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); font-size: 0.82rem; color: var(--primary); margin-bottom: 1.25rem; font-family: 'JetBrains Mono', monospace; }
+    .hero h1 { font-size: clamp(2.4rem, 5vw, 3.6rem); font-weight: 800; line-height: 1.12; margin-bottom: 1rem; }
+    .gradient-text { background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { color: var(--muted); font-size: 1.05rem; line-height: 1.65; margin-bottom: 1.75rem; }
+    .btn-group { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn { padding: 0.8rem 1.5rem; border-radius: 10px; font-weight: 600; font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.6rem; cursor: pointer; transition: all 0.25s; }
+    .btn-primary { background: var(--primary); color: #05070a; box-shadow: 0 0 20px var(--primary-glow); }
+    .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 0 30px var(--primary-glow); }
+    .btn-outline { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--primary); transform: translateY(-3px); }
+
+    /* Interactive Terminal Widget */
+    .terminal { background: #0d1117; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); font-family: 'JetBrains Mono', monospace; }
+    .terminal-header { background: #161b22; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+    .term-dots { display: flex; gap: 6px; }
+    .term-dots span { width: 11px; height: 11px; border-radius: 50%; }
+    .term-title { font-size: 0.78rem; color: var(--muted); }
+    .terminal-body { padding: 1.2rem; height: 270px; overflow-y: auto; font-size: 0.85rem; line-height: 1.6; }
+    .term-output div { margin-bottom: 0.5rem; }
+    .cmd-prompt { color: var(--primary); font-weight: 600; }
+    .term-input-line { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+    #term-input { background: transparent; border: none; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; width: 100%; outline: none; }
+    .quick-cmds { padding: 0.6rem 1rem; background: #121721; border-top: 1px solid var(--border); display: flex; gap: 0.45rem; flex-wrap: wrap; }
+    .cmd-chip { font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; padding: 0.25rem 0.6rem; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+    .cmd-chip:hover { color: var(--primary); border-color: var(--primary); }
+
+    /* Interactive Workspace & Setup Explorer */
+    .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .section-header h2 { font-size: 1.65rem; display: flex; align-items: center; gap: 0.6rem; }
+    .setup-explorer { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 1.5rem; margin-bottom: 4rem; }
+    @media (max-width: 850px) { .setup-explorer { grid-template-columns: 1fr; } }
+    .desk-blueprint { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; position: relative; min-height: 320px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+    .schematic-zone { position: relative; width: 100%; height: 230px; border: 1px dashed rgba(255, 255, 255, 0.12); border-radius: 12px; background: rgba(0, 0, 0, 0.25); }
+    .hotspot { position: absolute; padding: 0.45rem 0.85rem; background: rgba(13, 17, 23, 0.9); border: 1.5px solid var(--primary); border-radius: 8px; font-size: 0.78rem; font-family: 'JetBrains Mono', monospace; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 0 15px var(--primary-glow); transition: transform 0.2s, background 0.2s; }
+    .hotspot:hover, .hotspot.active { background: var(--primary); color: #05070a; font-weight: 700; transform: scale(1.07); }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .setup-detail-panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; display: flex; flex-direction: column; justify-content: center; }
+    .spec-badge { display: inline-block; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; color: var(--primary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px; }
+    .setup-detail-panel h3 { font-size: 1.4rem; margin-bottom: 0.75rem; }
+    .setup-detail-panel p { color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.25rem; }
+
+    /* Interactive Skill Filter & Cards */
+    .filter-tabs { display: flex; gap: 0.5rem; }
+    .tab-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 1rem; border-radius: 8px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+    .tab-btn.active, .tab-btn:hover { border-color: var(--primary); color: var(--text); background: rgba(255, 255, 255, 0.07); }
+    .bento-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 4rem; }
+    .bento-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 1.6rem; transition: transform 0.2s, border-color 0.25s; position: relative; overflow: hidden; }
+    .bento-card:hover { border-color: var(--primary); transform: translateY(-4px); }
+    .bento-card i { font-size: 1.6rem; color: var(--primary); margin-bottom: 1rem; }
+    .bento-card h3 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+    .bento-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
+    .skill-meter { margin-top: 1rem; background: rgba(255, 255, 255, 0.07); height: 6px; border-radius: 99px; overflow: hidden; }
+    .skill-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 99px; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; color: var(--muted); font-size: 0.9rem; }
+    .social-links { display: flex; gap: 0.75rem; }
+    .social-links a { width: 40px; height: 40px; border-radius: 10px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s; }
+    .social-links a:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-3px); }
+  </style>
+</head>
+<body>
+  <div class="cursor-dot" id="cursor-dot"></div>
+  <div class="cursor-ring" id="cursor-ring"></div>
+  <canvas id="bg-canvas"></canvas>
+  <div class="ambient-light"></div>
+
+  <div class="wrapper">
+    <nav>
+      <div class="brand">
+        <i class="fa-solid fa-fire-flame-curved"></i>
+        <span>IGN9TE</span>
+      </div>
+      <div class="nav-controls">
+        <div class="rgb-picker" title="Switch Desk Ambient RGB">
+          <span class="rgb-label">RGB:</span>
+          <button class="rgb-btn active" style="background: #58a6ff;" onclick="setTheme('#58a6ff', 'rgba(88,166,255,0.35)', '#bc8cff', this)"></button>
+          <button class="rgb-btn" style="background: #bc8cff;" onclick="setTheme('#bc8cff', 'rgba(188,140,255,0.35)', '#ff7b72', this)"></button>
+          <button class="rgb-btn" style="background: #3fb950;" onclick="setTheme('#3fb950', 'rgba(63,185,80,0.35)', '#58a6ff', this)"></button>
+          <button class="rgb-btn" style="background: #ff5555;" onclick="setTheme('#ff5555', 'rgba(255,85,85,0.35)', '#ffa657', this)"></button>
+        </div>
+        <button class="vibe-btn" id="vibe-toggle" onclick="toggleCodingVibe()">
+          <div class="eq-bars"><span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span></div>
+          <span id="vibe-text">Lo-Fi Mode: OFF</span>
+        </button>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div>
+        <div class="status-pill"><i class="fa-solid fa-code-branch"></i> 1st Year CS Engineering · Creator</div>
+        <h1>Hi, I'm <span class="gradient-text">Vaibhav Shah</span></h1>
+        <p>Aspiring Software Developer & Desk Setup Content Creator. Building a strong foundation in Data Structures, OOP, and clean web interfaces while sharing workspace aesthetics and tech reels.</p>
+        <div class="btn-group">
+          <a href="https://github.com/IGN9TE" target="_blank" class="btn btn-primary"><i class="fa-brands fa-github"></i> GitHub Profile</a>
+          <a href="https://beacons.ai/blaza_setup" target="_blank" class="btn btn-outline"><i class="fa-solid fa-sliders"></i> Desk Setup Links</a>
+        </div>
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="term-dots"><span style="background: #ff5f56;"></span><span style="background: #ffbd2e;"></span><span style="background: #27c93f;"></span></div>
+          <span class="term-title">ign9te@workspace: ~ (interactive)</span>
+        </div>
+        <div class="terminal-body" id="term-body" onclick="document.getElementById('term-input').focus()">
+          <div class="term-output" id="term-output">
+            <div>Welcome to <span class="cmd-prompt">IGN9TE OS v2.6</span>. Type <span class="cmd-prompt">help</span> or click a command below:</div>
+          </div>
+          <div class="term-input-line">
+            <span class="cmd-prompt">ign9te:~$</span>
+            <input type="text" id="term-input" placeholder="type a command..." autocomplete="off" />
+          </div>
+        </div>
+        <div class="quick-cmds">
+          <span class="cmd-chip" onclick="runCmd('about')">about</span>
+          <span class="cmd-chip" onclick="runCmd('skills')">skills</span>
+          <span class="cmd-chip" onclick="runCmd('setup')">setup</span>
+          <span class="cmd-chip" onclick="runCmd('socials')">socials</span>
+          <span class="cmd-chip" onclick="runCmd('clear')">clear</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2><i class="fa-solid fa-desktop" style="color: var(--primary);"></i> Interactive Setup Inspector</h2>
+        <span style="color: var(--muted); font-size: 0.9rem;">Click any hotspot on the blueprint to inspect gear</span>
+      </div>
+
+      <div class="setup-explorer">
+        <div class="desk-blueprint">
+          <div class="schematic-zone">
+            <!-- 4K OLED Hotspot -->
+            <div class="hotspot active" style="top: 15%; left: 32%;" onclick="inspectGear('display', this)">
+              <span class="pulse-dot"></span> Wall-Mounted 4K OLED
+            </div>
+            <!-- Poster Decor Hotspot -->
+            <div class="hotspot" style="top: 18%; right: 8%;" onclick="inspectGear('decor', this)">
+              <span class="pulse-dot"></span> Anime & Auto Posters
+            </div>
+            <!-- Lenovo LOQ Hotspot -->
+            <div class="hotspot" style="bottom: 22%; left: 10%;" onclick="inspectGear('pc', this)">
+              <span class="pulse-dot"></span> Lenovo LOQ 4050
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); margin-top: 1rem;">
+            <span>STATUS: AMBIENT SYNC ACTIVE</span>
+            <span>LAYOUT: OLED DISPLAY WORKSTATION</span>
+          </div>
+        </div>
+
+        <div class="setup-detail-panel" id="gear-panel">
+          <span class="spec-badge" id="gear-tag">DISPLAY CONFIG</span>
+          <h3 id="gear-title">Wall-Mounted 4K OLED TV</h3>
+          <p id="gear-desc">Expansive 4K OLED command-center view, perfect for timeline video editing, split-screen IDE coding, and gaming.</p>
+          <a href="https://beacons.ai/blaza_setup" target="_blank" class="btn btn-outline" style="align-self: flex-start; padding: 0.55rem 1.1rem; font-size: 0.85rem;">View Full Gear List <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <h2><i class="fa-solid fa-layer-group" style="color: var(--primary);"></i> Stack & Creative Focus</h2>
+        <div class="filter-tabs">
+          <button class="tab-btn active" onclick="filterCards('all', this)">All</button>
+          <button class="tab-btn" onclick="filterCards('code', this)">Code & DSA</button>
+          <button class="tab-btn" onclick="filterCards('creator', this)">Content & Edits</button>
+        </div>
+      </div>
+
+      <div class="bento-grid" id="bento-grid">
+        <div class="bento-card" data-category="code">
+          <i class="fa-brands fa-java"></i>
+          <h3>Java & Object-Oriented Programming</h3>
+          <p>Building modular applications and mastering core OOP principles and data structures.</p>
+          <div class="skill-meter"><div class="skill-fill" style="width: 85%;"></div></div>
+        </div>
+        <div class="bento-card" data-category="code">
+          <i class="fa-solid fa-microchip"></i>
+          <h3>C & C++ Problem Solving</h3>
+          <p>Writing fast, memory-efficient algorithms and tackling foundational engineering challenges.</p>
+          <div class="skill-meter"><div class="skill-fill" style="width: 80%;"></div></div>
+        </div>
+        <div class="bento-card" data-category="code">
+          <i class="fa-brands fa-html5"></i>
+          <h3>Modern Web Interfaces</h3>
+          <p>Crafting responsive HTML5 & CSS layouts with interactive JavaScript animations.</p>
+          <div class="skill-meter"><div class="skill-fill" style="width: 75%;"></div></div>
+        </div>
+        <div class="bento-card" data-category="creator">
+          <i class="fa-solid fa-video"></i>
+          <h3>Tech Reels & Video Editing</h3>
+          <p>Creating engaging Instagram content (@blaza_official) around desk setups, student life, and coding.</p>
+          <div class="skill-meter"><div class="skill-fill" style="width: 90%;"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>© 2026 Vaibhav Shah (IGN9TE) · Built with clean code & good music 🎧</div>
+      <div class="social-links">
+        <a href="https://github.com/IGN9TE" target="_blank" title="GitHub"><i class="fa-brands fa-github"></i></a>
+        <a href="https://beacons.ai/blaza_setup" target="_blank" title="Beacons Setup Links"><i class="fa-solid fa-link"></i></a>
+        <a href="mailto:vaibhavshambhushah07@gmail.com" title="Email"><i class="fa-solid fa-envelope"></i></a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    window.addEventListener('mousemove', (e) => {
+      dot.style.left = `${e.clientX}px`;
+      dot.style.top = `${e.clientY}px`;
+      ring.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 180, fill: 'forwards' });
+    });
+
+    let activeParticleColor = '#58a6ff';
+    function setTheme(primary, glow, secondary, btn) {
+      document.documentElement.style.setProperty('--primary', primary);
+      document.documentElement.style.setProperty('--primary-glow', glow);
+      document.documentElement.style.setProperty('--secondary', secondary);
+      activeParticleColor = primary;
+      document.querySelectorAll('.rgb-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    let audioCtx = null;
+    let isPlaying = false;
+    function toggleCodingVibe() {
+      const btn = document.getElementById('vibe-toggle');
+      const txt = document.getElementById('vibe-text');
+      isPlaying = !isPlaying;
+      btn.classList.toggle('playing', isPlaying);
+      txt.textContent = isPlaying ? 'Lo-Fi Mode: ON 🎧' : 'Lo-Fi Mode: OFF';
+      if (isPlaying) { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); playWarmChord(); }
+    }
+    function playWarmChord() {
+      if (!isPlaying || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      const freqs = [261.63, 329.63, 392.00, 493.88];
+      freqs.forEach(f => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine'; osc.frequency.value = f;
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.018, now + 0.8);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.5);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(now); osc.stop(now + 3.6);
+      });
+      setTimeout(() => { if (isPlaying) playWarmChord(); }, 3800);
+    }
+
+    const termInput = document.getElementById('term-input');
+    const termOutput = document.getElementById('term-output');
+    const termBody = document.getElementById('term-body');
+    const commands = {
+      help: "Available commands: <span class='cmd-prompt'>about</span>, <span class='cmd-prompt'>skills</span>, <span class='cmd-prompt'>setup</span>, <span class='cmd-prompt'>socials</span>, <span class='cmd-prompt'>clear</span>",
+      about: "Vaibhav Shah (IGN9TE) — 1st-year B.Tech Computer Engineering student & content creator passionate about DSA, OOP, and aesthetic setups.",
+      skills: "Languages & Tools: Java, C++, C, HTML5, Modern CSS, Git, VS Code.",
+      setup: "Rig: Lenovo LOQ (Ryzen 7 7700 + RTX 4050 8GB), Wall-mounted 4K OLED Display.",
+      socials: "GitHub: github.com/IGN9TE | IG: @blaza_official | Hub: beacons.ai/blaza_setup"
+    };
+
+    function runCmd(raw) {
+      const cmd = raw.trim().toLowerCase();
+      if (!cmd) return;
+      if (cmd === 'clear') { termOutput.innerHTML = ''; return; }
+      const response = commands[cmd] || `Command not found: ${cmd}. Type <span class='cmd-prompt'>help</span> for options.`;
+      termOutput.innerHTML += `<div><span class="cmd-prompt">ign9te:~$</span> ${cmd}</div><div style="color: #8b949e;">→ ${response}</div>`;
+      termBody.scrollTop = termBody.scrollHeight;
+    }
+    termInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { runCmd(termInput.value); termInput.value = ''; } });
+
+    const gearData = {
+      display: { tag: "DISPLAY CONFIG", title: "Wall-Mounted 4K OLED TV", desc: "Expansive 4K OLED command-center view, perfect for timeline video editing, split-screen IDE coding, and gaming." },
+      pc: { tag: "CORE COMPUTE", title: "Lenovo LOQ 4050", desc: "Powered by Ryzen 7 7700 and RTX 4050 (8GB) Graphics for heavy compiling, 3D workloads, and fast rendering." },
+      decor: { tag: "WORKSPACE VIBE", title: "Anime & Automotive Wall Art", desc: "Curated poster backdrop framing the elevated display to give reels and setup shots a clean, signature aesthetic." }
+    };
+
+    function inspectGear(key, el) {
+      document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active'));
+      el.classList.add('active');
+      const item = gearData[key];
+      document.getElementById('gear-tag').textContent = item.tag;
+      document.getElementById('gear-title').textContent = item.title;
+      document.getElementById('gear-desc').textContent = item.desc;
+    }
+
+    function filterCards(category, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.bento-card').forEach(card => { card.style.display = (category === 'all' || card.dataset.category === category) ? 'block' : 'none'; });
+    }
+
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resize(); window.addEventListener('resize', resize);
+    for (let i = 0; i < 50; i++) { particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.6, vy: (Math.random() - 0.5) * 0.6, r: Math.random() * 2 + 1 }); }
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = activeParticleColor; ctx.globalAlpha = 0.35; ctx.fill();
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = p.x - particles[j].x; const dy = p.y - particles[j].y; const dist = Math.hypot(dx, dy);
+          if (dist < 120) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(particles[j].x, particles[j].y); ctx.strokeStyle = activeParticleColor; ctx.globalAlpha = 0.12 * (1 - dist / 120); ctx.stroke(); }
+        }
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>
